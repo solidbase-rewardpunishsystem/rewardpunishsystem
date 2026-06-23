@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SOLID BASE — Reward & Punishment System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#059669;--green-lt:#D1FAE5;--green-dk:#047857;
+  --red:#DC2626;--red-lt:#FEE2E2;--amber:#D97706;--amber-lt:#FEF3C7;
+  --blue:#2563EB;--blue-lt:#DBEAFE;--purple:#7C3AED;--purple-lt:#EDE9FE;
+  --gray:#6B7280;--gray-lt:#F3F4F6;--border:#E5E7EB;--bg:#F3F4F6;
+  --surface:#fff;--text:#111827;--muted:#6B7280;
+  --r:8px;--r-lg:12px;--sh:0 1px 4px rgba(0,0,0,.07);
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:230px;min-width:230px;background:#111827;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sb-logo{padding:1rem .9rem .7rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logorow{display:flex;align-items:center;gap:9px;margin-bottom:3px}
+.sb-icon{width:32px;height:32px;background:var(--green);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.sb-sub{font-size:10px;color:rgba(255,255,255,.35);padding-left:41px}
+.sb-nav{padding:.5rem .5rem;flex:1}
+.sb-sec{margin-bottom:.9rem}
+.sb-sec-label{font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.28);text-transform:uppercase;padding:0 .4rem;margin-bottom:.25rem}
+.nav-btn{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:6px;color:rgba(255,255,255,.55);font-size:12.5px;font-weight:500;cursor:pointer;transition:.12s;border:none;background:none;width:100%;text-align:left}
+.nav-btn:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9)}
+.nav-btn.active{background:var(--green);color:#fff}
+.nav-btn svg{width:15px;height:15px;flex-shrink:0}
+.nb-badge{margin-left:auto;background:#DC2626;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px}
+.sb-footer{padding:.7rem 1rem;border-top:1px solid rgba(255,255,255,.08)}
+.sb-rl{font-size:10px;color:rgba(255,255,255,.3);margin-bottom:5px}
+.role-chips{display:flex;flex-wrap:wrap;gap:3px}
+.rc{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;transition:.12s;border:1.5px solid transparent}
+.month-bar{background:#1F2937;padding:.45rem .9rem;display:flex;align-items:center;gap:5px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.08)}
+.month-bar label{font-size:10px;color:rgba(255,255,255,.4);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-right:2px;white-space:nowrap}
+.month-tab{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);background:transparent;transition:.12s}
+.month-tab:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8)}
+.month-tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+.month-tab.has-data{border-color:rgba(5,150,105,.5);color:rgba(255,255,255,.7)}
+.page{padding:1.3rem 1.6rem;max-width:1200px}
+.ph{margin-bottom:1rem;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.ph-left h1{font-size:19px;font-weight:700;margin-bottom:2px}
+.ph-left p{font-size:12px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.3rem;box-shadow:var(--sh);margin-bottom:1rem}
+.ct{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;margin-bottom:.85rem;flex-wrap:wrap}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:9px;margin-bottom:1rem}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.8rem 1rem;box-shadow:var(--sh)}
+.sl{font-size:11px;color:var(--muted);margin-bottom:3px}
+.sv{font-size:23px;font-weight:700}
+.sv.g{color:var(--green)}.sv.r{color:var(--red)}.sv.a{color:var(--amber)}.sv.p{color:var(--purple)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;padding:7px 11px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:#F9FAFB;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px 11px;border-bottom:1px solid #F3F4F6;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAFA}
+.b{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;white-space:nowrap}
+.bg{background:var(--green-lt);color:#065F46}.br{background:var(--red-lt);color:#991B1B}
+.ba{background:var(--amber-lt);color:#92400E}.bb{background:var(--blue-lt);color:#1E40AF}
+.bp{background:var(--purple-lt);color:#5B21B6}.bx{background:var(--gray-lt);color:#374151}
+.sbw{display:flex;align-items:center;gap:7px}
+.sbb{height:5px;background:var(--gray-lt);border-radius:3px;overflow:hidden;flex:1;min-width:50px}
+.sbf{height:100%;border-radius:3px;transition:.3s}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;transition:.12s;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.btn:hover{background:var(--gray-lt)}.btn:active{transform:scale(.98)}
+.btn-p{background:var(--green);color:#fff;border-color:var(--green)}.btn-p:hover{background:var(--green-dk)}
+.btn-d{background:var(--red-lt);color:var(--red);border-color:#FECACA}
+.btn-sm{padding:4px 9px;font-size:11px}.btn:disabled{opacity:.5;cursor:not-allowed}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11px;font-weight:600;color:#374151}
+.fc{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--text);background:var(--surface);width:100%;transition:border-color .15s}
+.fc:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(5,150,105,.1)}
+.fr{display:flex;gap:9px;flex-wrap:wrap}.fr .fg{flex:1;min-width:130px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:1rem}
+.mb{background:var(--surface);border-radius:var(--r-lg);width:min(600px,100%);max-height:92vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.mh{padding:1rem 1.3rem 0;display:flex;align-items:center;justify-content:space-between}
+.mh h2{font-size:15px;font-weight:700}
+.mbody{padding:.9rem 1.3rem;display:flex;flex-direction:column;gap:10px}
+.mf{padding:0 1.3rem 1rem;display:flex;gap:7px;justify-content:flex-end}
+.notice{padding:.5rem .9rem;border-radius:6px;font-size:11.5px;display:flex;align-items:flex-start;gap:7px}
+.nw{background:var(--amber-lt);color:#92400E}.ns{background:var(--green-lt);color:#065F46}
+.ni{background:var(--blue-lt);color:#1E40AF}.nr{background:var(--red-lt);color:#991B1B}
+.fdrop{border:2px dashed var(--border);border-radius:var(--r);padding:1rem;text-align:center;cursor:pointer;transition:.15s;background:#fafafa}
+.fdrop:hover,.fdrop.dov{border-color:var(--green);background:#F0FDF4}
+.fdrop p{font-size:11px;color:var(--muted);margin-top:4px}
+.fp{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--gray-lt);border-radius:6px;margin-top:5px;font-size:11px}
+.ft{flex:1;word-break:break-all;font-weight:500}
+.fthumb{width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer}
+.pdfbadge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--red);background:var(--red-lt);padding:2px 7px;border-radius:4px;text-decoration:none;cursor:pointer}
+.lbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:2000;cursor:zoom-out}
+.lbox img{max-width:90vw;max-height:90vh;border-radius:var(--r)}
+.tw2{position:fixed;bottom:1.25rem;right:1.25rem;z-index:3000;display:flex;flex-direction:column;gap:6px}
+.toast{padding:9px 16px;border-radius:6px;font-size:12px;font-weight:500;animation:tin .18s ease;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.ts{background:var(--green);color:#fff}.te{background:var(--red);color:#fff}
+@keyframes tin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.date-tag{font-size:10.5px;color:var(--muted);background:var(--gray-lt);padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.empty{text-align:center;padding:2rem;color:var(--muted);font-size:12px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.rec-card{border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1rem;background:#FAFAFA}
+.rec-empty{border:2px dashed var(--border);border-radius:var(--r);padding:1.5rem;text-align:center;color:var(--muted);font-size:12px}
+.set-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F3F4F6}
+.set-row:last-child{border-bottom:none}
+.set-lbl{flex:1;font-size:13px;font-weight:500}
+.set-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.att-grid{display:grid;grid-template-columns:1fr 90px 90px 60px auto;gap:7px;align-items:center}
+.att-hdr{display:grid;grid-template-columns:1fr 90px 90px 60px auto;gap:7px;padding:0 0 6px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.emp-edit-row{display:grid;grid-template-columns:1fr 100px 100px auto;gap:7px;align-items:center;padding:5px 0;border-bottom:1px solid #F9FAFB}
+.emp-edit-hdr{display:grid;grid-template-columns:1fr 100px 100px auto;gap:7px;padding:0 0 5px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+@media print{.sidebar,.month-bar,.ph .btn,.no-print{display:none!important}.card{break-inside:avoid;box-shadow:none}body{background:#fff}}
+@media(max-width:700px){.g2{grid-template-columns:1fr}.sidebar{display:none}.page{padding:1rem}}
+
+/* ── Login ── */
+.login-wrap{position:fixed;inset:0;background:linear-gradient(135deg,#0F172A 0%,#1E3A2F 100%);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem}
+.login-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:min(400px,100%);box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:.5rem}
+.login-logo-icon{width:42px;height:42px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.login-title{font-size:20px;font-weight:700;color:#111827}
+.login-sub{font-size:12px;color:#6B7280;margin-bottom:2rem}
+.login-field{margin-bottom:1rem}
+.login-field label{font-size:11px;font-weight:700;color:#374151;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.login-field input{width:100%;padding:10px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:14px;color:#111827;transition:.15s}
+.login-field input:focus{outline:none;border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.12)}
+.login-btn{width:100%;padding:11px;background:#059669;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;margin-top:.5rem}
+.login-btn:hover{background:#047857}
+.login-err{background:#FEE2E2;color:#991B1B;border-radius:6px;padding:8px 12px;font-size:12px;margin-top:.75rem;display:none;text-align:center}
+.login-footer{text-align:center;font-size:11px;color:#9CA3AF;margin-top:1.5rem}
+.user-chip{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,.07);border-radius:8px;cursor:default}
+.user-chip-avatar{width:26px;height:26px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.user-chip-info{flex:1;min-width:0}
+.user-chip-name{font-size:11px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-chip-role{font-size:10px;color:rgba(255,255,255,.45);text-transform:capitalize}
+.user-mgmt-row{display:grid;grid-template-columns:1fr 100px 120px auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #F3F4F6}
+.user-mgmt-hdr{display:grid;grid-template-columns:1fr 100px 120px auto;gap:8px;padding:0 0 6px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+      </div>
+      <span class="login-title" id="login-company-name">SOLID BASE</span>
+    </div>
+    <div class="login-sub" id="login-system-title">Reward &amp; Punishment System</div>
+    <div class="login-field">
+      <label>User ID</label>
+      <input type="text" id="login-id" placeholder="Enter your user ID" autocomplete="username"
+        onkeydown="if(event.key==='Enter')document.getElementById('login-pw').focus()"/>
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-pw" placeholder="Enter your password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-err" id="login-err">Incorrect User ID or password. Please try again.</div>
+    <div class="login-footer">SOLID BASE Manufacturing &nbsp;·&nbsp; 2026</div>
+  </div>
+</div>
+
+<div class="layout" id="app-layout" style="display:none">
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logorow">
+      <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="17" height="17"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg></div>
+      <span class="sb-name" id="sb-cname">SOLID BASE</span>
+    </div>
+    <div class="sb-sub" id="sb-ctitle">Reward &amp; Punishment System</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">
+      <div class="sb-sec-label">Overview</div>
+      <button class="nav-btn active" onclick="nav('dashboard')" id="nb-dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>Dashboard</button>
+      <button class="nav-btn" onclick="nav('employees')" id="nb-employees"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>Operators</button>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-sec-label">Weekly Entry</div>
+      <button class="nav-btn" onclick="nav('attendance')" id="nb-attendance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>Attendance</button>
+      <button class="nav-btn" onclick="nav('discipline')" id="nb-discipline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>Discipline</button>
+      <button class="nav-btn" onclick="nav('fives')" id="nb-fives"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>5S</button>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-sec-label">Recognition</div>
+      <button class="nav-btn" onclick="nav('recognition')" id="nb-recognition"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>Good 5S / Discipline</button>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-sec-label">Reports</div>
+      <button class="nav-btn" onclick="nav('report')" id="nb-report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>Monthly Report</button>
+    </div>
+    <div class="sb-sec" id="admin-sec">
+      <div class="sb-sec-label">Admin</div>
+      <button class="nav-btn" onclick="nav('pending')" id="nb-pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Approvals<span class="nb-badge" id="pending-badge" style="display:none">0</span></button>
+      <button class="nav-btn" onclick="nav('settings')" id="nb-settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Settings</button>
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <div class="user-chip" id="user-chip">
+      <div class="user-chip-avatar" id="user-avatar">?</div>
+      <div class="user-chip-info">
+        <div class="user-chip-name" id="user-name">—</div>
+        <div class="user-chip-role" id="user-role-label">—</div>
+      </div>
+    </div>
+    <button onclick="doLogout()" style="margin-top:8px;width:100%;padding:6px;background:rgba(220,38,38,.15);color:#FCA5A5;border:1px solid rgba(220,38,38,.3);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:.12s" onmouseover="this.style.background='rgba(220,38,38,.25)'" onmouseout="this.style.background='rgba(220,38,38,.15)'">
+      Sign Out
+    </button>
+  </div>
+</aside>
+<div style="flex:1;display:flex;flex-direction:column;min-height:0">
+  <div class="month-bar" id="month-bar"></div>
+  <main id="main-content" style="flex:1;overflow-y:auto"></main>
+</div>
+</div>
+<div class="mo" id="modal" style="display:none" onclick="modalBgClick(event)">
+  <div class="mb">
+    <div class="mh"><h2 id="modal-title"></h2><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="mbody" id="modal-body"></div>
+    <div class="mf" id="modal-footer"></div>
+  </div>
+</div>
+<div class="lbox" id="lightbox" style="display:none" onclick="this.style.display='none'"><img id="lbox-img" src="" alt=""/></div>
+<div class="tw2" id="toasts"></div>
+<script>
+
+// ═══ DEFAULT CONFIG (all editable in Settings) ════════════════════
+const DEFAULT_CONFIG = {
+  rewardMin:95, punishUL:2, punishLate:2, punishDisc:1, punish5S:2,
+  approvalPassword:"1234",  // password required to approve entries (HR Admin can change)
+  reportPassword:"",        // password required to VIEW monthly report (empty = no lock)
+  rewardNeedGood5s:true,   // must have Good 5S recognition to get Reward
+  rewardNeedGoodDisc:true, // must have Good Discipline recognition to get Reward
+  // Custom statuses for "other" operators (not reward, not punish)
+  statuses:[
+    {id:"good",         label:"GOOD",             color:"#059669", bg:"#D1FAE5"},
+    {id:"need_improve", label:"NEED IMPROVEMENT",  color:"#D97706", bg:"#FEF3C7"},
+  ],
+  companyName:"SOLID BASE", systemTitle:"Reward & Punishment System",
+  dashCards:[
+    {id:"operators",label:"Total Operators",show:true},
+    {id:"reward",   label:"🏆 Reward",       show:true},
+    {id:"flagged",  label:"⚠ Flagged",       show:true},
+    {id:"att",      label:"Att. Cases",      show:true},
+    {id:"disc",     label:"Disc. Cases",     show:true},
+    {id:"fives",    label:"5S Cases",        show:true},
+  ],
+  attTypes:[
+    {id:"unpaid_full",label:"Unpaid Leave (1 day)",  days:1,  cls:"br",enabled:true},
+    {id:"unpaid_half",label:"Unpaid Leave (0.5 day)",days:0.5,cls:"br",enabled:true},
+    {id:"late",       label:"Late / Early Leave",    days:0.5,cls:"ba",enabled:true},
+    {id:"mc",         label:"Medical Leave (MC)",    days:1,  cls:"ba",enabled:true},
+    {id:"absent",     label:"Absent (No Show)",      days:1,  cls:"br",enabled:true},
+  ],
+};
+const SEED_EMPS=[
+  {id:1, empNo:"EMP1001",name:"SUGANTHY",           dept:"Production"},
+  {id:2, empNo:"EMP1002",name:"MAHMUD",             dept:"Production"},
+  {id:3, empNo:"EMP1003",name:"MOHD ZAILANI",       dept:"Production"},
+  {id:4, empNo:"EMP1004",name:"JAHIRUL",            dept:"Production"},
+  {id:5, empNo:"EMP1005",name:"ABUL MIAH",          dept:"Production"},
+  {id:6, empNo:"EMP1006",name:"YE LIN",             dept:"Production"},
+  {id:7, empNo:"EMP1007",name:"THANT ZIN KYAW",     dept:"Production"},
+  {id:8, empNo:"EMP1008",name:"THANT ZIN MOE",      dept:"Production"},
+  {id:9, empNo:"EMP1009",name:"KYAW SOE",           dept:"Production"},
+  {id:10,empNo:"EMP1010",name:"ASHRAFUL",           dept:"Production"},
+  {id:11,empNo:"EMP1011",name:"RAM NARAYAN",        dept:"Production"},
+  {id:12,empNo:"EMP1012",name:"CHET KARKI BAHADUR", dept:"Production"},
+  {id:13,empNo:"EMP1013",name:"MAHARA RAJENDRA",    dept:"Production"},
+  {id:14,empNo:"EMP1014",name:"BRU KISHOR",         dept:"Production"},
+  {id:15,empNo:"EMP1015",name:"SAHANI MUNISH",      dept:"Production"},
+  {id:16,empNo:"EMP1016",name:"SATYA NARAYANI",     dept:"Production"},
+  {id:17,empNo:"EMP1017",name:"ALAM SHAH",          dept:"Production"},
+  {id:18,empNo:"EMP1018",name:"DINO / LUKMAN",      dept:"Production"},
+  {id:19,empNo:"EMP1019",name:"B K SANTA DAHADUR",  dept:"Production"},
+  {id:20,empNo:"EMP1020",name:"KYAW SOE AUNG",      dept:"Production"},
+  {id:21,empNo:"EMP1021",name:"THUYA AUNG",         dept:"Production"},
+  {id:22,empNo:"EMP1022",name:"MANGEES",            dept:"Production"},
+  {id:23,empNo:"EMP1023",name:"LALU",               dept:"Production"},
+  {id:24,empNo:"EMP1024",name:"TAJAL",              dept:"Production"},
+  {id:25,empNo:"EMP1025",name:"ANZO MIAH",          dept:"Production"},
+  {id:26,empNo:"EMP1026",name:"AUNG SOE",           dept:"Production"},
+  {id:27,empNo:"EMP1027",name:"NAING LIN ZAW",      dept:"Production"},
+  {id:28,empNo:"EMP1028",name:"MAHARA JUGESHWAR",   dept:"Production"},
+  {id:29,empNo:"EMP1029",name:"LALIT NARAYAN",      dept:"Production"},
+  {id:30,empNo:"EMP1030",name:"MAUNG HTWE",         dept:"Production"},
+  {id:31,empNo:"EMP1031",name:"NYO ZAW OO",         dept:"Production"},
+  {id:32,empNo:"EMP1032",name:"TIN KO KO HTWE",     dept:"Production"},
+  {id:33,empNo:"EMP1033",name:"MYO MIN HTWE",       dept:"Production"},
+  {id:34,empNo:"EMP1034",name:"MYO ZAW",            dept:"Production"},
+  {id:35,empNo:"EMP1035",name:"NAING SOE",          dept:"Production"},
+  {id:36,empNo:"EMP1036",name:"FOK WAI KIAT",       dept:"Production"},
+  {id:37,empNo:"EMP1037",name:"AH CHUAN",           dept:"Production"},
+  {id:38,empNo:"EMP1038",name:"RAVIN RAJ",          dept:"Production"},
+  {id:39,empNo:"EMP1039",name:"AUNG KO WIN",        dept:"Production"},
+  {id:40,empNo:"EMP1040",name:"MIPHTAHUL ARIFFIN",  dept:"Production"},
+  {id:41,empNo:"EMP1041",name:"ASARI",              dept:"Production"},
+  {id:42,empNo:"EMP1042",name:"AUNG KYAW KYAW",     dept:"Production"},
+  {id:43,empNo:"EMP1043",name:"SAW HSAR KA PAW",    dept:"Production"},
+  {id:44,empNo:"EMP1044",name:"KYAW MYO TUN",       dept:"Production"},
+  {id:45,empNo:"EMP1045",name:"HEIN YAR SAR",       dept:"Production"},
+  {id:46,empNo:"EMP1046",name:"NAN HTAY AUNG",      dept:"Production"},
+  {id:47,empNo:"EMP1047",name:"KYAW MOE NAING",     dept:"Production"},
+];
+const MONTHS_FULL=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MONTHS_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DISC_PRESETS=["Not wearing safety shoes","Not wearing PPE","Mobile phone during working hours","Sleeping during work","Unauthorized area entry","Insubordination","Fighting / misconduct","Other"];
+const FIVES_PRESETS=["Workstation not clean","Tools not returned to place","Waste not disposed properly","Unlabeled / improper storage","Walkway obstructed","Other"];
+const ROLES={
+  hr:        {label:"HR (Admin)", color:"#059669",att:true, disc:true, fs:true, approve:true, emp:true, rec:true, settings:true},
+  production:{label:"Production", color:"#D97706",att:false,disc:true, fs:true, approve:false,emp:false,rec:true, settings:false},
+  viewer:    {label:"Viewer",     color:"#9CA3AF",att:false,disc:false,fs:false,approve:false,emp:false,rec:false,settings:false},
+};
+let S={},role="hr",curPage="dashboard",curMK="";
+let currentUser=null; // {id, name, role}
+
+// ── Default users (stored in S.users, editable in Settings) ──────
+const DEFAULT_USERS=[
+  {id:"admin",    password:"admin123",  name:"HR Admin",       role:"hr"},
+  {id:"hr",       password:"hr123",     name:"HR Officer",     role:"hr"},
+  {id:"prod1",    password:"prod123",   name:"Production Sup", role:"production"},
+  {id:"viewer",   password:"view123",   name:"Viewer",         role:"viewer"},
+];
+
+function doLogin(){
+  const uid=document.getElementById("login-id")?.value?.trim();
+  const pw=document.getElementById("login-pw")?.value;
+  const users=S.users||DEFAULT_USERS;
+  const user=users.find(u=>u.id===uid&&u.password===pw);
+  if(!user){
+    const err=document.getElementById("login-err");if(err)err.style.display="";
+    document.getElementById("login-pw").value="";
+    document.getElementById("login-pw").focus();
+    return;
+  }
+  currentUser=user;role=user.role;
+  document.getElementById("login-screen").style.display="none";
+  document.getElementById("app-layout").style.display="flex";
+  renderRoleChips();renderMonthBar();nav("dashboard");
+}
+
+function doLogout(){
+  currentUser=null;window._reportUnlocked=false;
+  document.getElementById("login-id").value="";
+  document.getElementById("login-pw").value="";
+  const err=document.getElementById("login-err");if(err)err.style.display="none";
+  document.getElementById("login-screen").style.display="flex";
+  document.getElementById("app-layout").style.display="none";
+}
+
+// ── Helpers ────────────────────────────────────────────────────────
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function nowMK(){const n=new Date();return n.getFullYear()+"-"+(n.getMonth()+1);}
+function mkLabel(mk){if(!mk)return"";const[y,m]=mk.split("-");return MONTHS_FULL[parseInt(m)-1]+" "+y;}
+function mkShort(mk){if(!mk)return"";const[y,m]=mk.split("-");return MONTHS_SHORT[parseInt(m)-1];}
+function allMK(){return Array.from({length:12},(_,i)=>"2026-"+(i+1));}
+function daysInMK(mk){const[y,m]=mk.split("-");return new Date(parseInt(y),parseInt(m),0).getDate();}
+function minDate(mk){const[y,m]=mk.split("-");return`${y}-${m.padStart?String(m).padStart(2,"0"):("0"+m).slice(-2)}-01`;}
+function maxDate(mk){const[y,m]=mk.split("-");const mm=String(m).padStart(2,"0");return`${y}-${mm}-${String(daysInMK(mk)).padStart(2,"0")}`;}
+function fmtDate(d){if(!d)return"—";return new Date(d+"T00:00:00").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});}
+function scColor(s){return s>=0.9?"#059669":s>=0.7?"#D97706":"#DC2626";}
+function CFG(){return S.config||DEFAULT_CONFIG;}
+function attTypesAll(){return CFG().attTypes||DEFAULT_CONFIG.attTypes;}
+function attTypesEnabled(){return attTypesAll().filter(t=>t.enabled!==false);}
+function attTypeOf(val){return attTypesAll().find(t=>t.id===val)||{label:val,cls:"bx",days:1};}
+
+// ── Scoring ────────────────────────────────────────────────────────
+function attDays(name,mk){return S.attendance.filter(a=>a.employeeName===name&&a.monthKey===mk&&a.approved).reduce((s,a)=>s+(attTypeOf(a.type).days||1),0);}
+function unpaidDays(name,mk){return S.attendance.filter(a=>a.employeeName===name&&a.monthKey===mk&&a.approved&&["unpaid_full","unpaid_half","absent"].includes(a.type)).reduce((s,a)=>s+(attTypeOf(a.type).days||1),0);}
+function lateCount(name,mk){return S.attendance.filter(a=>a.employeeName===name&&a.monthKey===mk&&a.approved&&a.type==="late").length;}
+function discCount(name,mk){return S.discipline.filter(d=>d.employeeName===name&&d.monthKey===mk&&d.approved).length;}
+function fivesCount(name,mk){return S.fiveS.filter(f=>f.employeeName===name&&f.monthKey===mk&&f.approved).length;}
+function calcScore(name,mk){
+  const cfg=CFG(),td=S.workingDays[mk]||26,ab=attDays(name,mk),di=discCount(name,mk),fs=fivesCount(name,mk);
+  return (Math.max(0,(td-ab)/td)+(di===0?1:Math.max(0,(td-di)/td))+(fs===0?1:Math.max(0,(td-fs)/td)))/3;
+}
+function isPunished(name,mk){
+  // ONLY rule: overall score below threshold → punish
+  return calcScore(name,mk)*100 < CFG().rewardMin;
+}
+function isRewarded(name,mk){
+  const c=CFG(),sc=calcScore(name,mk);
+  // Must pass score threshold
+  if(sc*100<c.rewardMin)return false;
+  // Must not have any hard violations
+  if(isPunished(name,mk))return false;
+  // Must have zero unpaid leave (any type)
+  if(unpaidDays(name,mk)>0)return false;
+  // Must have zero late
+  if(lateCount(name,mk)>0)return false;
+  // Must have zero discipline cases
+  if(discCount(name,mk)>0)return false;
+  // Must have zero 5S cases
+  if(fivesCount(name,mk)>0)return false;
+  // Must have Good 5S recognition this month (if required)
+  if(c.rewardNeedGood5s){
+    const rec=S.recognition[mk]||{good5s:[]};
+    if(!rec.good5s||!rec.good5s.some(r=>r.name===name))return false;
+  }
+  // Must have Good Discipline recognition this month (if required)
+  if(c.rewardNeedGoodDisc){
+    const rec=S.recognition[mk]||{goodDisc:[]};
+    if(!rec.goodDisc||!rec.goodDisc.some(r=>r.name===name))return false;
+  }
+  return true;
+}
+// Get operator status: reward / punish / good / need_improve (based on config statuses)
+function getOperatorStatus(name,mk){
+  if(isRewarded(name,mk))return{id:"reward",label:"🏆 Reward",color:"#059669",bg:"#D1FAE5",cls:"bg"};
+  if(isPunished(name,mk))return{id:"punish",label:"⚠ Flagged",color:"#DC2626",bg:"#FEE2E2",cls:"br"};
+  // Check custom statuses from config — default first match, else last status
+  const statuses=CFG().statuses||DEFAULT_CONFIG.statuses;
+  return statuses.length>0?{...statuses[0],cls:"bx"}:{id:"good",label:"GOOD",color:"#059669",bg:"#D1FAE5",cls:"bg"};
+}
+// For operators not in reward/punish — allow HR to manually set their status
+function getManualStatus(name,mk){
+  const key=`status_${mk}_${name}`;
+  const stored=(S.manualStatuses||{})[key];
+  const statuses=CFG().statuses||DEFAULT_CONFIG.statuses;
+  if(stored){const found=statuses.find(s=>s.id===stored);if(found)return{...found,cls:"bx"};}
+  return statuses.length>0?{...statuses[0],cls:"bx"}:{id:"good",label:"GOOD",color:"#059669",bg:"#D1FAE5",cls:"bg"};
+}
+function setManualStatus(name,mk,statusId){
+  if(!S.manualStatuses)S.manualStatuses={};
+  if(!S.users)S.users=JSON.parse(JSON.stringify(DEFAULT_USERS));
+  S.manualStatuses[`status_${mk}_${name}`]=statusId;
+  save();
+}
+function punishReasons(name,mk){
+  const sc=calcScore(name,mk),c=CFG();
+  return [`Score: ${(sc*100).toFixed(1)}% — below ${c.rewardMin}% threshold`];
+}
+
+// ── Load / Save ────────────────────────────────────────────────────
+function loadState(){
+  try{const r=localStorage.getItem("sbv7");if(r)S=JSON.parse(r);}catch(e){}
+  if(!S.config)S.config=JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  ["attTypes","dashCards","statuses"].forEach(k=>{if(!S.config[k])S.config[k]=JSON.parse(JSON.stringify(DEFAULT_CONFIG[k]));});
+  if(S.config.rewardNeedGood5s===undefined)S.config.rewardNeedGood5s=DEFAULT_CONFIG.rewardNeedGood5s;
+  if(S.config.rewardNeedGoodDisc===undefined)S.config.rewardNeedGoodDisc=DEFAULT_CONFIG.rewardNeedGoodDisc;
+  if(!S.config.approvalPassword)S.config.approvalPassword=DEFAULT_CONFIG.approvalPassword;
+  if(S.config.reportPassword===undefined)S.config.reportPassword=DEFAULT_CONFIG.reportPassword;
+  if(S.config.rewardMin===undefined)S.config.rewardMin=DEFAULT_CONFIG.rewardMin;
+  if(!S.employees)S.employees=JSON.parse(JSON.stringify(SEED_EMPS));
+  if(!S.attendance)S.attendance=[];
+  if(!S.discipline)S.discipline=[];
+  if(!S.fiveS)S.fiveS=[];
+  if(!S.recognition)S.recognition={};
+  if(!S.workingDays)S.workingDays={};
+  if(!S.manualStatuses)S.manualStatuses={};
+  if(!S.seeded){
+    const mk="2026-3";S.workingDays[mk]=26;
+    [{n:"SUGANTHY",d:"2026-03-05",t:"mc"},{n:"MAHMUD",d:"2026-03-02",t:"unpaid_full"},{n:"MAHMUD",d:"2026-03-09",t:"unpaid_full"},{n:"MAHMUD",d:"2026-03-16",t:"unpaid_full"},{n:"MAHMUD",d:"2026-03-23",t:"unpaid_full"},{n:"MAHMUD",d:"2026-03-28",t:"absent"},{n:"MOHD ZAILANI",d:"2026-03-02",t:"unpaid_full"},{n:"MOHD ZAILANI",d:"2026-03-03",t:"unpaid_full"},{n:"MOHD ZAILANI",d:"2026-03-04",t:"unpaid_full"},{n:"MOHD ZAILANI",d:"2026-03-05",t:"unpaid_full"},{n:"MOHD ZAILANI",d:"2026-03-09",t:"unpaid_full"},{n:"MOHD ZAILANI",d:"2026-03-10",t:"unpaid_full"},{n:"MOHD ZAILANI",d:"2026-03-11",t:"unpaid_full"},{n:"MOHD ZAILANI",d:"2026-03-16",t:"unpaid_full"},{n:"MOHD ZAILANI",d:"2026-03-23",t:"unpaid_full"},{n:"MOHD ZAILANI",d:"2026-03-28",t:"unpaid_full"}]
+    .forEach(x=>S.attendance.push({id:uid(),employeeName:x.n,date:x.d,type:x.t,reason:"",monthKey:mk,approved:true,submittedBy:"hr",attachments:[]}));
+    [{n:"RAM NARAYAN",desc:"Not wearing safety shoes"},{n:"YE LIN",desc:"Not wearing safety shoes"},{n:"DINO / LUKMAN",desc:"Not wearing safety shoes"}]
+    .forEach(x=>S.discipline.push({id:uid(),employeeName:x.n,date:"2026-03-03",desc:x.desc,monthKey:mk,approved:true,submittedBy:"production",attachments:[]}));
+    [{n:"BRU KISHOR"},{n:"MAHARA JUGESHWAR"}]
+    .forEach(x=>S.fiveS.push({id:uid(),employeeName:x.n,date:"2026-03-03",desc:"Workstation non-compliant",monthKey:mk,approved:true,submittedBy:"production",attachments:[]}));
+    S.seeded=true;
+  }
+  save();
+  curMK=nowMK();if(!allMK().includes(curMK))curMK="2026-3";
+}
+function save(){try{localStorage.setItem("sbv7",JSON.stringify(S));}catch(e){toast("Storage full — reduce attachments","e");}}
+
+// ── Toast ──────────────────────────────────────────────────────────
+function toast(msg,t="s"){
+  const d=document.createElement("div");d.className="toast t"+t;d.textContent=msg;
+  document.getElementById("toasts").appendChild(d);setTimeout(()=>d.remove(),3000);
+}
+
+// ── Month bar ──────────────────────────────────────────────────────
+function renderMonthBar(){
+  document.getElementById("month-bar").innerHTML=`<label>2026</label>`+allMK().map(mk=>{
+    const has=S.attendance.some(a=>a.monthKey===mk)||S.discipline.some(d=>d.monthKey===mk)||S.fiveS.some(f=>f.monthKey===mk);
+    return`<button class="month-tab ${mk===curMK?"active":has?"has-data":""}" onclick="switchMonth('${mk}')">${mkShort(mk)}</button>`;
+  }).join("");
+}
+function switchMonth(mk){curMK=mk;renderMonthBar();renderPage();}
+
+// ── Nav ────────────────────────────────────────────────────────────
+function nav(p){
+  curPage=p;
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  const nb=document.getElementById("nb-"+p);if(nb)nb.classList.add("active");
+  document.getElementById("admin-sec").style.display=ROLES[role].approve?"":"none";
+  renderPage();updateBadge();
+}
+function updateBadge(){
+  const n=S.attendance.filter(a=>!a.approved).length+S.discipline.filter(d=>!d.approved).length+S.fiveS.filter(f=>!f.approved).length;
+  const b=document.getElementById("pending-badge");b.style.display=n?"":"none";b.textContent=n;
+}
+function renderRoleChips(){
+  // Update user chip in sidebar footer
+  if(currentUser){
+    const av=document.getElementById("user-avatar");
+    const nm=document.getElementById("user-name");
+    const rl=document.getElementById("user-role-label");
+    if(av)av.textContent=currentUser.name.charAt(0).toUpperCase();
+    if(nm)nm.textContent=currentUser.name;
+    if(rl)rl.textContent=ROLES[role]?.label||role;
+    const rv=ROLES[role];
+    if(av&&rv)av.style.background=rv.color;
+  }
+}
+function setRole(r){
+  // Only HR admin can switch roles (for testing/viewing)
+  if(!currentUser||currentUser.role!=="hr"){toast("Only HR Admin can switch roles","e");return;}
+  role=r;renderRoleChips();nav(curPage);
+}
+
+// ── UI helpers ─────────────────────────────────────────────────────
+function sbar(sc){const p=(sc*100).toFixed(0),c=scColor(sc);return`<div class="sbw"><div class="sbb"><div class="sbf" style="width:${p}%;background:${c}"></div></div><span style="font-size:11px;min-width:32px;color:${c};font-weight:600">${p}%</span></div>`;}
+function attachCell(files){
+  if(!files||!files.length)return`<span style="color:#D1D5DB;font-size:11px">—</span>`;
+  return files.map(f=>{
+    if(f.type==="application/pdf")return`<a href="${f.url}" target="_blank" class="pdfbadge">PDF</a>`;
+    if(f.url&&f.url.startsWith("http")&&!f.url.startsWith("data:"))return`<a href="${f.url}" target="_blank" class="pdfbadge" style="color:var(--blue)">🔗 Link</a>`;
+    return`<img src="${f.url}" class="fthumb" onclick="lbShow('${f.url}')" alt="proof"/>`;
+  }).join(" ");
+}
+function lbShow(url){document.getElementById("lbox-img").src=url;document.getElementById("lightbox").style.display="flex";}
+
+// ── File upload ────────────────────────────────────────────────────
+let PF=[];
+function initUpload(zoneId){
+  PF=[];
+  const el=document.getElementById(zoneId);if(!el)return;
+  el.innerHTML=`<div class="fdrop" onclick="document.getElementById('fui').click()" ondragover="event.preventDefault();this.classList.add('dov')" ondragleave="this.classList.remove('dov')" ondrop="fDrop(event)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5" width="24" height="24" style="margin:0 auto 4px;display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+    <p>Click or drag &amp; drop photo / PDF</p><p style="font-size:10px">JPG · PNG · PDF · max 5MB</p>
+  </div>
+  <input type="file" id="fui" multiple accept="image/jpeg,image/png,image/webp,application/pdf" style="display:none" onchange="fInput(event)"/>
+  <div id="fpv"></div>`;
+}
+function fDrop(e){e.preventDefault();e.currentTarget.classList.remove("dov");fProcess(e.dataTransfer.files);}
+function fInput(e){fProcess(e.target.files);}
+function fProcess(files){
+  Array.from(files).forEach(f=>{
+    if(f.size>5*1024*1024){toast("Max 5MB","e");return;}
+    if(!["image/jpeg","image/png","image/webp","application/pdf"].includes(f.type)){toast("JPG/PNG/PDF only","e");return;}
+    const r=new FileReader();r.onload=ev=>{PF.push({id:uid(),name:f.name,type:f.type,url:ev.target.result});renderFP();};r.readAsDataURL(f);
+  });
+}
+function renderFP(){
+  const el=document.getElementById("fpv");if(!el)return;
+  el.innerHTML=PF.map((f,i)=>`<div class="fp">
+    ${f.type==="application/pdf"?`<span class="pdfbadge">PDF</span>`:`<img src="${f.url}" class="fthumb" onclick="lbShow('${f.url}')" alt=""/>`}
+    <span class="ft">${f.name.length>26?f.name.slice(0,26)+"…":f.name}</span>
+    <button class="btn btn-sm" onclick="PF.splice(${i},1);renderFP()" style="padding:2px 6px;font-size:10px">✕</button>
+  </div>`).join("");
+}
+
+// ── Modal ──────────────────────────────────────────────────────────
+function openModal(title,body,footer){
+  document.getElementById("modal-title").textContent=title;
+  document.getElementById("modal-body").innerHTML=body;
+  document.getElementById("modal-footer").innerHTML=footer;
+  document.getElementById("modal").style.display="flex";
+}
+function closeModal(){document.getElementById("modal").style.display="none";}
+function modalBgClick(e){if(e.target===document.getElementById("modal"))closeModal();}
+
+// ── Main render ────────────────────────────────────────────────────
+function renderPage(){
+  const el=document.getElementById("main-content");
+  const map={dashboard:rDashboard,employees:rEmployees,attendance:()=>rEntry("attendance"),discipline:()=>rEntry("discipline"),fives:()=>rEntry("fives"),recognition:rRecognition,report:rReport,pending:rPending,settings:rSettings};
+  el.innerHTML=(map[curPage]||rDashboard)();
+  el.scrollTop=0;
+}
+
+// ══ DASHBOARD ════════════════════════════════════════════════════
+function rDashboard(){
+  const mk=curMK,td=S.workingDays[mk]||26,c=CFG();
+  const empS=S.employees.map(e=>({...e,sc:calcScore(e.name,mk),rw:isRewarded(e.name,mk),pu:isPunished(e.name,mk)}));
+  const rw=empS.filter(x=>x.rw).length,fl=empS.filter(x=>x.pu).length;
+  const top5=[...empS].sort((a,b)=>b.sc-a.sc).slice(0,5);
+  const recent=[
+    ...S.attendance.filter(a=>a.monthKey===mk).slice(-2).map(a=>({...a,cat:"Att",cls:"ba"})),
+    ...S.discipline.filter(d=>d.monthKey===mk).slice(-2).map(d=>({...d,cat:"Disc",cls:"br"})),
+    ...S.fiveS.filter(f=>f.monthKey===mk).slice(-2).map(f=>({...f,cat:"5S",cls:"bg"})),
+  ].slice(-6);
+  const normalOps=S.employees.filter(e=>!isRewarded(e.name,mk)&&!isPunished(e.name,mk));
+  const statusCounts={};(CFG().statuses||[]).forEach(s=>{statusCounts[s.id]=normalOps.filter(e=>getManualStatus(e.name,mk).id===s.id).length;});
+  const cardData={operators:{val:S.employees.length,cls:""},reward:{val:rw,cls:"g"},flagged:{val:fl,cls:"r"},att:{val:S.attendance.filter(a=>a.monthKey===mk&&a.approved).length,cls:"a"},disc:{val:S.discipline.filter(d=>d.monthKey===mk&&d.approved).length,cls:"r"},fives:{val:S.fiveS.filter(f=>f.monthKey===mk&&f.approved).length,cls:"a"}};
+  const visCards=c.dashCards.filter(x=>x.show!==false);
+  const R=ROLES[role];
+  return`<div class="page">
+  <div class="ph"><div class="ph-left"><h1>Dashboard</h1><p>${mkLabel(mk)} · ${td} working days</p></div>
+    ${R.settings?`<button class="btn btn-sm no-print" onclick="nav('settings')">⚙ Settings</button>`:""}
+  </div>
+  <div class="sg">${visCards.map(card=>{const d=cardData[card.id];return d?`<div class="sc"><div class="sl">${card.label}</div><div class="sv ${d.cls}">${d.val}</div></div>`:""}).join("")}</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ct" style="color:#D97706">🏆 Top Performers — ${mkShort(mk)}</div>
+      <table><thead><tr><th>#</th><th>Name</th><th>Score</th></tr></thead><tbody>
+      ${top5.map((e,i)=>`<tr><td style="font-weight:700;color:${i===0?"#D97706":i===1?"#9CA3AF":"#92400E"}">${i+1}</td><td style="font-weight:600">${e.name}</td><td>${sbar(e.sc)}</td></tr>`).join("")}
+      </tbody></table>
+    </div>
+    <div class="card">
+      <div class="ct" style="color:#2563EB">⚡ Recent Activity</div>
+      ${recent.length===0?`<div class="empty">No entries yet for ${mkLabel(mk)}.</div>`:`<div style="display:flex;flex-direction:column;gap:5px">${recent.map(a=>`<div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:#F9FAFB;border-radius:6px"><span class="b ${a.cls}">${a.cat}</span><span style="flex:1;font-weight:500;font-size:12px">${a.employeeName}</span><span class="date-tag">${fmtDate(a.date)}</span>${!a.approved?`<span class="b ba" style="font-size:9px">Pend</span>`:""}</div>`).join("")}</div>`}
+      ${R.approve?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6"><div style="font-size:11px;color:#6B7280;margin-bottom:5px;font-weight:500">Working days — ${mkLabel(mk)}</div><div style="display:flex;gap:7px;align-items:center"><input type="number" id="wd-inp" value="${td}" min="1" max="31" class="fc" style="width:72px"/><button class="btn btn-p btn-sm" onclick="setWD()">Update</button></div></div>`:""}
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct" style="justify-content:space-between">
+      <span>📊 Scoring Rule</span>
+      ${R.settings?`<button class="btn btn-sm no-print" onclick="nav('settings')">Edit in Settings</button>`:""}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;font-size:13px">
+      <div style="background:#FEE2E2;border-radius:8px;padding:12px 16px;border-left:4px solid #DC2626">
+        <div style="font-weight:700;color:#991B1B;margin-bottom:4px">⚠ Punishment</div>
+        <div style="color:#991B1B">Overall Score <b>&lt; ${c.rewardMin}%</b></div>
+        <div style="font-size:11px;color:#DC2626;margin-top:4px">Score = (Att% + Disc% + 5S%) ÷ 3</div>
+      </div>
+      <div style="background:#D1FAE5;border-radius:8px;padding:12px 16px;border-left:4px solid #059669">
+        <div style="font-weight:700;color:#065F46;margin-bottom:4px">🏆 Reward</div>
+        <div style="color:#065F46">Overall Score <b>≥ ${c.rewardMin}%</b> + no UL + no late + 0 disc + 0 5S${c.rewardNeedGood5s||c.rewardNeedGoodDisc?" + recognition":""}</div>
+      </div>
+      <div style="background:#EDE9FE;border-radius:8px;padding:12px 16px;border-left:4px solid #7C3AED">
+        <div style="font-weight:700;color:#5B21B6;margin-bottom:4px">🏷 Others</div>
+        <div style="color:#5B21B6">Manually assigned status (Good / Need Improvement)</div>
+      </div>
+    </div>
+  </div></div>`;
+}
+function setWD(){const v=parseInt(document.getElementById("wd-inp").value)||26;S.workingDays[curMK]=v;save();toast("Working days → "+v);renderPage();}
+
+// ══ EMPLOYEES ════════════════════════════════════════════════════
+function rEmployees(){
+  const mk=curMK,R=ROLES[role];
+  const q=(document.getElementById("emp-q")||{}).value||"";
+  const rows=S.employees
+    .filter(e=>!q||e.name.toLowerCase().includes(q.toLowerCase())||e.empNo.toLowerCase().includes(q.toLowerCase()))
+    .map(e=>({...e,sc:calcScore(e.name,mk),ab:attDays(e.name,mk),di:discCount(e.name,mk),fs:fivesCount(e.name,mk),rw:isRewarded(e.name,mk),pu:isPunished(e.name,mk)}))
+    .sort((a,b)=>b.sc-a.sc);
+  return`<div class="page">
+  <div class="ph"><div class="ph-left"><h1>Operators</h1><p>${S.employees.length} total · ${mkLabel(mk)} scores</p></div>
+    ${R.emp?`<button class="btn btn-p btn-sm" onclick="openAddEmp()">+ Add Operator</button>`:""}
+  </div>
+  <div class="card">
+    <input class="fc" id="emp-q" placeholder="Search name or emp no…" style="max-width:260px;margin-bottom:10px" oninput="renderPage()" value="${q}"/>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Emp No.</th><th>Name</th><th>Dept</th><th>Att.Days</th><th>Disc.</th><th>5S</th><th>Score</th><th>Status</th>${R.emp?"<th>Actions</th>":""}</tr></thead>
+      <tbody>${rows.map((e,i)=>`<tr>
+        <td style="color:#9CA3AF">${i+1}</td>
+        <td style="font-size:11px;color:#9CA3AF"><span style="cursor:${R.emp?"pointer":"default"};text-decoration:${R.emp?"underline dotted":"none"}" ${R.emp?`onclick="openEditEmp(${e.id})"`:""} title="${R.emp?"Click to edit":""}">${e.empNo}</span></td>
+        <td style="font-weight:600"><span style="cursor:${R.emp?"pointer":"default"};text-decoration:${R.emp?"underline dotted":"none"}" ${R.emp?`onclick="openEditEmp(${e.id})"`:""} title="${R.emp?"Click to edit":""}">${e.name}</span></td>
+        <td style="font-size:12px">${e.dept}</td>
+        <td><span class="b ${e.ab>0?"br":"bx"}">${e.ab}</span></td>
+        <td><span class="b ${e.di>0?"br":"bx"}">${e.di}</span></td>
+        <td><span class="b ${e.fs>0?"ba":"bx"}">${e.fs}</span></td>
+        <td>${sbar(e.sc)}</td>
+        <td>${(()=>{
+          if(e.rw)return`<span class="b bg">🏆 Reward</span>`;
+          if(e.pu)return`<span class="b br">⚠ Flagged</span>`;
+          const ms=getManualStatus(e.name,mk);
+          const statuses=CFG().statuses||[];
+          if(!R.emp)return`<span class="b bx" style="background:${ms.bg};color:${ms.color}">${ms.label}</span>`;
+          return`<select class="fc" style="font-size:10px;padding:2px 5px;width:auto;min-width:130px;background:${ms.bg};color:${ms.color};font-weight:600;border-color:${ms.color}" onchange="setManualStatus('${e.name}','${mk}',this.value);renderPage()">${statuses.map(s=>`<option value="${s.id}" ${ms.id===s.id?"selected":""}>${s.label}</option>`).join("")}</select>`;
+        })()}</td>
+        ${R.emp?`<td><div style="display:flex;gap:5px"><button class="btn btn-sm" onclick="openEditEmp(${e.id})">✏</button><button class="btn btn-d btn-sm" onclick="removeEmp(${e.id})">🗑</button></div></td>`:""}
+      </tr>`).join("")}</tbody>
+    </table></div>
+  </div></div>`;
+}
+function empModal(title,emp,onSave){
+  openModal(title,`
+    <div class="fr"><div class="fg"><label>Full Name *</label><input class="fc" id="em-name" value="${emp.name||""}" placeholder="FULL NAME (CAPS)"/></div>
+    <div class="fg"><label>Emp No. *</label><input class="fc" id="em-no" value="${emp.empNo||""}" placeholder="EMP1001"/></div></div>
+    <div class="fr"><div class="fg"><label>Department</label>
+      <select class="fc" id="em-dept">${["Production","HR","QC","Maintenance","Warehouse"].map(d=>`<option ${emp.dept===d?"selected":""}>${d}</option>`).join("")}</select>
+    </div></div>`,
+    `<button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="${onSave}">Save</button>`);
+}
+function openAddEmp(){empModal("Add New Operator",{},`saveNewEmp()`);}
+function saveNewEmp(){
+  const name=document.getElementById("em-name").value.trim().toUpperCase();
+  const empNo=document.getElementById("em-no").value.trim();
+  const dept=document.getElementById("em-dept").value;
+  if(!name){toast("Enter name","e");return;}
+  if(!empNo){toast("Enter emp no.","e");return;}
+  if(S.employees.some(e=>e.empNo===empNo)){toast("Emp No. already exists","e");return;}
+  const id=S.employees.length?Math.max(...S.employees.map(e=>e.id))+1:1;
+  S.employees.push({id,name,empNo,dept});save();closeModal();toast("Operator added!");renderPage();
+}
+function openEditEmp(id){
+  const e=S.employees.find(x=>x.id===id);if(!e)return;
+  openModal("Edit Operator",`
+    <div class="fr"><div class="fg"><label>Full Name *</label><input class="fc" id="em-name" value="${e.name}" placeholder="FULL NAME"/></div>
+    <div class="fg"><label>Emp No. *</label><input class="fc" id="em-no" value="${e.empNo}" placeholder="EMP1001"/></div></div>
+    <div class="fr"><div class="fg"><label>Department</label>
+      <select class="fc" id="em-dept">${["Production","HR","QC","Maintenance","Warehouse"].map(d=>`<option ${e.dept===d?"selected":""}>${d}</option>`).join("")}</select>
+    </div></div>`,
+    `<button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="saveEditEmp(${id})">Save Changes</button>`);
+}
+function saveEditEmp(id){
+  const name=document.getElementById("em-name").value.trim().toUpperCase();
+  const empNo=document.getElementById("em-no").value.trim();
+  const dept=document.getElementById("em-dept").value;
+  if(!name){toast("Enter name","e");return;}
+  if(!empNo){toast("Enter emp no.","e");return;}
+  if(S.employees.some(e=>e.empNo===empNo&&e.id!==id)){toast("Emp No. already exists","e");return;}
+  const old=S.employees.find(x=>x.id===id);
+  // Update records if name changed
+  if(old.name!==name){
+    S.attendance.forEach(a=>{if(a.employeeName===old.name)a.employeeName=name;});
+    S.discipline.forEach(d=>{if(d.employeeName===old.name)d.employeeName=name;});
+    S.fiveS.forEach(f=>{if(f.employeeName===old.name)f.employeeName=name;});
+  }
+  old.name=name;old.empNo=empNo;old.dept=dept;
+  save();closeModal();toast("Operator updated!");renderPage();
+}
+function removeEmp(id){
+  const e=S.employees.find(x=>x.id===id);if(!e)return;
+  if(!confirm(`Remove ${e.name}?\nAll their records will also be deleted.`))return;
+  S.employees=S.employees.filter(x=>x.id!==id);
+  S.attendance=S.attendance.filter(a=>a.employeeName!==e.name);
+  S.discipline=S.discipline.filter(d=>d.employeeName!==e.name);
+  S.fiveS=S.fiveS.filter(f=>f.employeeName!==e.name);
+  save();toast(`${e.name} removed.`);renderPage();
+}
+
+// ══ ENTRY PAGES ═════════════════════════════════════════════════
+function rEntry(cat){
+  const mk=curMK,R=ROLES[role];
+  const canAdd=(cat==="attendance"&&R.att)||(cat==="discipline"&&R.disc)||(cat==="fives"&&R.fs);
+  const data=(cat==="attendance"?S.attendance:cat==="discipline"?S.discipline:S.fiveS).filter(d=>d.monthKey===mk);
+  const isAtt=cat==="attendance";
+  const titles={attendance:"Attendance",discipline:"Discipline",fives:"5S Non-Compliance"};
+  return`<div class="page">
+  <div class="ph"><div class="ph-left"><h1>${titles[cat]}</h1><p>${mkLabel(mk)} · ${data.filter(d=>d.approved).length} approved</p></div>
+    ${canAdd?`<button class="btn btn-p btn-sm" onclick="openAddEntry('${cat}')">+ Add Entry</button>`:`<span class="b bx">${isAtt?"HR only":"Production only"}</span>`}
+  </div>
+  ${canAdd?`<div class="notice nw" style="margin-bottom:10px">⚠ All entries require HR (Admin) approval before affecting scores. Attach photo/PDF proof.</div>`:""}
+  <div class="card">
+    <div class="tw"><table>
+      <thead><tr><th>Operator</th><th>Date</th>${isAtt?"<th>Type</th><th>Days</th><th>Reason</th>":"<th>Description</th>"}<th>Proof</th><th>By</th><th>Status</th>${R.approve?"<th>Act.</th>":""}</tr></thead>
+      <tbody>
+      ${data.length===0?`<tr><td colspan="9" class="empty">No entries for ${mkLabel(mk)}.</td></tr>`:""}
+      ${data.sort((a,b)=>a.date>b.date?-1:1).map(e=>{const tt=isAtt?attTypeOf(e.type):{label:"",cls:"bx",days:""};return`<tr>
+        <td style="font-weight:600">${e.employeeName}</td>
+        <td><span class="date-tag">${fmtDate(e.date)}</span></td>
+        ${isAtt?`<td><span class="b ${tt.cls}" style="font-size:10px">${tt.label}</span></td><td style="font-weight:600;color:#DC2626">${tt.days}</td><td style="font-size:11px;color:#6B7280">${e.reason||"—"}</td>`:`<td style="font-size:11px;max-width:220px">${e.desc||"—"}</td>`}
+        <td>${attachCell(e.attachments)}</td>
+        <td style="font-size:11px;color:#9CA3AF;text-transform:capitalize">${e.submittedBy||"—"}</td>
+        <td>${e.approved?`<span class="b bg">✓</span>`:`<span class="b ba">⏳</span>`}</td>
+        ${R.approve?`<td><div style="display:flex;gap:4px">${!e.approved?`<button class="btn btn-p btn-sm" onclick="approveE('${cat}','${e.id}')">✓</button>`:""}<button class="btn btn-d btn-sm" onclick="deleteE('${cat}','${e.id}')">🗑</button></div></td>`:""}
+      </tr>`}).join("")}
+      </tbody>
+    </table></div>
+  </div>
+  ${isAtt?`<div class="card"><div class="ct" style="justify-content:space-between"><span>Attendance Type Guide</span>${ROLES[role].settings?`<button class="btn btn-sm no-print" onclick="nav('settings')">Edit in Settings</button>`:""}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${attTypesEnabled().map(t=>`<div style="background:${t.cls==="br"?"#FEE2E2":"#FEF3C7"};border-radius:6px;padding:6px 12px;font-size:12px"><b style="color:${t.cls==="br"?"#991B1B":"#92400E"}">${t.label}</b> <span style="color:#6B7280">= ${t.days} day deducted</span></div>`).join("")}
+    </div></div>`:""}</div>`;
+}
+function openAddEntry(cat){
+  const mk=curMK,isAtt=cat==="attendance";
+  const presets=cat==="discipline"?DISC_PRESETS:cat==="fives"?FIVES_PRESETS:[];
+  const titles={attendance:"Record Absence / Late",discipline:"Record Discipline Case",fives:"Record 5S Non-Compliance"};
+  const empOpts=S.employees.sort((a,b)=>a.name.localeCompare(b.name)).map(e=>`<option value="${e.name}">${e.name} (${e.empNo})</option>`).join("");
+  openModal(titles[cat],`
+    <div class="fr">
+      <div class="fg"><label>Operator *</label><select class="fc" id="m-emp"><option value="">— Select —</option>${empOpts}</select></div>
+      <div class="fg"><label>Date *</label><input type="date" class="fc" id="m-date" min="${minDate(mk)}" max="${maxDate(mk)}" value="${maxDate(mk)}"/></div>
+    </div>
+    ${isAtt?`<div class="fr">
+      <div class="fg"><label>Type</label><select class="fc" id="m-type">${attTypesEnabled().map(t=>`<option value="${t.id}">${t.label} (${t.days} day)</option>`).join("")}</select></div>
+      <div class="fg"><label>Reason / Notes</label><input class="fc" id="m-reason" placeholder="MC ref, remarks…"/></div>
+    </div>`:""}
+    ${presets.length?`<div class="fg"><label>Case Type</label><select class="fc" id="m-preset" onchange="toggleCW()"><option value="">— Select —</option>${presets.map(p=>`<option>${p}</option>`).join("")}</select></div>
+    <div class="fg" id="cwrap" style="display:none"><label>Custom Description</label><input class="fc" id="m-desc" placeholder="Describe…"/></div>`:""}
+    <div class="fg"><label>Attach Proof</label><div id="fuz"></div></div>
+    <div class="notice ni">ℹ Sent to HR (Admin) for approval.</div>`,
+    `<button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="submitE('${cat}')">Submit for Approval</button>`);
+  initUpload("fuz");
+}
+function toggleCW(){const v=document.getElementById("m-preset")?.value;const w=document.getElementById("cwrap");if(w)w.style.display=(v==="Other")?"":"none";}
+function submitE(cat){
+  const name=document.getElementById("m-emp")?.value,date=document.getElementById("m-date")?.value;
+  if(!name){toast("Select operator","e");return;}if(!date){toast("Select date","e");return;}
+  const entry={id:uid(),employeeName:name,date,monthKey:curMK,approved:false,submittedBy:role,attachments:[...PF]};
+  if(cat==="attendance"){entry.type=document.getElementById("m-type")?.value||"absent";entry.reason=document.getElementById("m-reason")?.value||"";}
+  else{const p=document.getElementById("m-preset")?.value||"",c2=document.getElementById("m-desc")?.value||"";entry.desc=(p==="Other"||!p)?c2:p;}
+  if(cat==="attendance")S.attendance.push(entry);
+  else if(cat==="discipline")S.discipline.push(entry);
+  else S.fiveS.push(entry);
+  save();closeModal();toast("Submitted!");updateBadge();renderPage();
+}
+function approveE(cat,id){
+  const pw=CFG().approvalPassword;
+  if(pw){
+    const entered=prompt("Enter approval password:");
+    if(entered===null)return;
+    if(entered!==String(pw)){toast("Wrong password","e");return;}
+  }
+  const arr=cat==="attendance"?S.attendance:cat==="discipline"?S.discipline:S.fiveS;
+  const e=arr.find(x=>x.id===id);if(e)e.approved=true;save();toast("Approved!");updateBadge();renderPage();
+}
+function deleteE(cat,id){
+  if(!confirm("Delete this entry?"))return;
+  if(cat==="attendance")S.attendance=S.attendance.filter(x=>x.id!==id);
+  else if(cat==="discipline")S.discipline=S.discipline.filter(x=>x.id!==id);
+  else S.fiveS=S.fiveS.filter(x=>x.id!==id);
+  save();toast("Deleted.");updateBadge();renderPage();
+}
+
+// ══ RECOGNITION ═════════════════════════════════════════════════
+function rRecognition(){
+  const mk=curMK,R=ROLES[role],rec=S.recognition[mk]||{good5s:[],goodDisc:[]};
+  const recCard=(r,type,i)=>`<div class="rec-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><div style="font-weight:700;font-size:13px">${r.name}</div><span class="b ${type==="5s"?"bg":"bb"}" style="margin-top:3px;display:inline-flex">${type==="5s"?"⭐ Good 5S":"🌟 Good Discipline"}</span></div>
+      ${R.rec?`<button class="btn btn-d btn-sm" onclick="removeRec('${type}',${i})">🗑</button>`:""}
+    </div>
+    <p style="font-size:12px;color:#374151;margin-top:7px;line-height:1.5">${r.summary||"—"}</p>
+    ${r.attachments&&r.attachments.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${r.attachments.map(f=>f.type==="application/pdf"?`<a href="${f.url}" target="_blank" class="pdfbadge">PDF</a>`:`<img src="${f.url}" class="fthumb" onclick="lbShow('${f.url}')" alt=""/>`).join("")}</div>`:""}
+  </div>`;
+  return`<div class="page">
+  <div class="ph"><div class="ph-left"><h1>Good 5S &amp; Good Discipline</h1><p>${mkLabel(mk)}</p></div></div>
+  <div class="card"><div class="ct" style="color:#059669">⭐ Good 5S — ${mkLabel(mk)}${R.rec?`<button class="btn btn-p btn-sm" style="margin-left:auto" onclick="openAddRec('5s')">+ Add</button>`:""}</div>
+    ${!rec.good5s||!rec.good5s.length?`<div class="rec-empty">No Good 5S entries for ${mkLabel(mk)} yet.</div>`:`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">${rec.good5s.map((r,i)=>recCard(r,"5s",i)).join("")}</div>`}
+  </div>
+  <div class="card"><div class="ct" style="color:#2563EB">🌟 Good Discipline — ${mkLabel(mk)}${R.rec?`<button class="btn btn-p btn-sm" style="margin-left:auto" onclick="openAddRec('disc')">+ Add</button>`:""}</div>
+    ${!rec.goodDisc||!rec.goodDisc.length?`<div class="rec-empty">No Good Discipline entries for ${mkLabel(mk)} yet.</div>`:`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">${rec.goodDisc.map((r,i)=>recCard(r,"disc",i)).join("")}</div>`}
+  </div></div>`;
+}
+function openAddRec(type){
+  const empOpts=S.employees.sort((a,b)=>a.name.localeCompare(b.name)).map(e=>`<option value="${e.name}">${e.name}</option>`).join("");
+  openModal(type==="5s"?"Add Good 5S Entry":"Add Good Discipline Entry",`
+    <div class="fg"><label>Operator *</label><select class="fc" id="rec-emp"><option value="">— Select —</option>${empOpts}</select></div>
+    <div class="fg"><label>Summary *</label><textarea class="fc" id="rec-sum" rows="3" placeholder="Describe what was done well…" style="resize:vertical"></textarea></div>
+    <div class="fg"><label>Attach Photo / PDF</label><div id="fuz"></div></div>`,
+    `<button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="saveRec('${type}')">Save</button>`);
+  initUpload("fuz");
+}
+function saveRec(type){
+  const name=document.getElementById("rec-emp")?.value,sum=document.getElementById("rec-sum")?.value?.trim();
+  if(!name){toast("Select operator","e");return;}if(!sum){toast("Enter summary","e");return;}
+  if(!S.recognition[curMK])S.recognition[curMK]={good5s:[],goodDisc:[]};
+  if(type==="5s")S.recognition[curMK].good5s.push({name,summary:sum,attachments:[...PF]});
+  else S.recognition[curMK].goodDisc.push({name,summary:sum,attachments:[...PF]});
+  save();closeModal();toast("Recognition saved!");renderPage();
+}
+function removeRec(type,idx){
+  if(!confirm("Remove this entry?"))return;
+  if(type==="5s")S.recognition[curMK].good5s.splice(idx,1);else S.recognition[curMK].goodDisc.splice(idx,1);
+  save();toast("Removed.");renderPage();
+}
+
+// ══ PENDING ══════════════════════════════════════════════════════
+function rPending(){
+  if(!ROLES[role].approve)return`<div class="page"><div class="ph"><div class="ph-left"><h1>Approvals</h1></div></div><div class="card"><div class="notice nw">Only HR (Admin) can access approvals.</div></div></div>`;
+  const pa=S.attendance.filter(a=>!a.approved),pd=S.discipline.filter(d=>!d.approved),pf=S.fiveS.filter(f=>!f.approved),total=pa.length+pd.length+pf.length;
+  const pSec=(title,color,data,cat,isAtt)=>{if(!data.length)return"";
+    return`<div class="card" style="border-left:3px solid ${color}"><div class="ct" style="color:${color}">${title} — ${data.length} pending</div>
+    <div class="tw"><table><thead><tr><th>Operator</th><th>Month</th><th>Date</th>${isAtt?"<th>Type</th><th>Days</th>":"<th>Description</th>"}<th>Proof</th><th>By</th><th>Actions</th></tr></thead>
+    <tbody>${data.map(e=>{const tt=isAtt?attTypeOf(e.type):{days:""};return`<tr style="background:#FFFBEB">
+      <td style="font-weight:600">${e.employeeName}</td><td><span class="b bb">${mkShort(e.monthKey)}</span></td>
+      <td><span class="date-tag">${fmtDate(e.date)}</span></td>
+      ${isAtt?`<td><span class="b ${tt.cls}" style="font-size:10px">${tt.label}</span></td><td style="font-weight:600;color:#DC2626">${tt.days}</td>`:`<td style="font-size:11px">${e.desc||"—"}</td>`}
+      <td>${attachCell(e.attachments)}</td>
+      <td style="font-size:11px;color:#9CA3AF;text-transform:capitalize">${e.submittedBy||"—"}</td>
+      <td><div style="display:flex;gap:5px"><button class="btn btn-p btn-sm" onclick="approveE('${cat}','${e.id}')">✓</button><button class="btn btn-d btn-sm" onclick="deleteE('${cat}','${e.id}')">✕</button></div></td>
+    </tr>`}).join("")}</tbody></table></div></div>`;};
+  return`<div class="page">
+  <div class="ph"><div class="ph-left"><h1>Pending Approvals</h1><p>${total>0?total+" awaiting review":"All up to date"}</p></div>
+    ${total>0?`<button class="btn btn-p btn-sm" onclick="approveAll()">✓ Approve All (${total})</button>`:""}
+  </div>
+  ${total===0?`<div class="card"><div class="notice ns">✓ No pending entries.</div></div>`:""}
+  ${pSec("Attendance","#1E40AF",pa,"attendance",true)}
+  ${pSec("Discipline","#991B1B",pd,"discipline",false)}
+  ${pSec("5S","#92400E",pf,"fives",false)}
+  </div>`;
+}
+function approveAll(){
+  const pw=CFG().approvalPassword;
+  if(pw){
+    const entered=prompt("Enter approval password to approve all:");
+    if(entered===null)return;
+    if(entered!==String(pw)){toast("Wrong password","e");return;}
+  }
+  if(!confirm("Approve all pending entries?"))return;
+  S.attendance.forEach(a=>a.approved=true);S.discipline.forEach(d=>d.approved=true);S.fiveS.forEach(f=>f.approved=true);
+  save();toast("All approved!");updateBadge();renderPage();
+}
+
+// ══ REPORT ══════════════════════════════════════════════════════
+function rReport(){
+  // Check report password
+  const rpw=CFG().reportPassword;
+  if(rpw&&!window._reportUnlocked){
+    return`<div class="page">
+    <div class="ph"><div class="ph-left"><h1>Monthly Report</h1><p>Password required to view this report.</p></div></div>
+    <div style="max-width:380px;margin:3rem auto">
+      <div class="card" style="text-align:center;padding:2rem">
+        <div style="font-size:40px;margin-bottom:1rem">🔒</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:.5rem">Report is locked</div>
+        <div style="font-size:13px;color:#6B7280;margin-bottom:1.5rem">Enter the report password to view the Monthly Report.</div>
+        <input type="password" id="rpt-pw-input" class="fc" placeholder="Enter password" style="margin-bottom:10px;text-align:center"
+          onkeydown="if(event.key==='Enter')unlockReport()"/>
+        <button class="btn btn-p" style="width:100%" onclick="unlockReport()">🔓 Unlock Report</button>
+        <div id="rpt-pw-err" style="color:#DC2626;font-size:12px;margin-top:8px;display:none">Wrong password. Try again.</div>
+      </div>
+    </div></div>`;
+  }
+  const mk=curMK,td=S.workingDays[mk]||26,c=CFG(),rec=S.recognition[mk]||{good5s:[],goodDisc:[]};
+  const rows=S.employees.map(e=>{
+    const sc=calcScore(e.name,mk),ab=attDays(e.name,mk),ul=unpaidDays(e.name,mk),late=lateCount(e.name,mk),di=discCount(e.name,mk),fs=fivesCount(e.name,mk);
+    const aS=((Math.max(0,(td-ab)/td))*100).toFixed(1),dS=(di===0?100:Math.max(0,(td-di)/td)*100).toFixed(1),fS=(fs===0?100:Math.max(0,(td-fs)/td)*100).toFixed(1);
+    return{...e,sc,ab,ul,late,di,fs,aS,dS,fS,rw:isRewarded(e.name,mk),pu:isPunished(e.name,mk),reasons:punishReasons(e.name,mk)};
+  });
+  const rw=rows.filter(r=>r.rw).sort((a,b)=>b.sc-a.sc),pu=rows.filter(r=>r.pu).sort((a,b)=>a.sc-b.sc);
+  const avg=rows.length?(rows.reduce((s,r)=>s+r.sc,0)/rows.length*100).toFixed(1):0;
+  const recCards=(list,type)=>list.map(r=>`<div class="rec-card"><div style="font-weight:700;font-size:13px">${r.name}</div><p style="font-size:12px;color:#374151;margin-top:6px;line-height:1.5">${r.summary}</p>${r.attachments&&r.attachments.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">${r.attachments.map(f=>f.type==="application/pdf"?`<a href="${f.url}" target="_blank" class="pdfbadge">PDF</a>`:`<img src="${f.url}" class="fthumb" onclick="lbShow('${f.url}')" alt=""/>`).join("")}</div>`:""}</div>`).join("");
+  return`<div class="page">
+  <div class="ph"><div class="ph-left"><h1>Monthly Report — ${mkLabel(mk)}</h1><p>${td} working days · ${S.employees.length} operators</p></div>
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-sm no-print" onclick="window.print()">🖨 Print / PDF</button>
+      ${CFG().reportPassword?`<button class="btn btn-sm no-print" onclick="lockReport()" style="color:#DC2626;border-color:#FECACA">🔒 Lock</button>`:""}
+    </div>
+  </div>
+  <div class="card"><div class="ct">2026 Overview — click to switch</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+    ${allMK().map(m=>{const has=S.attendance.some(a=>a.monthKey===m)||S.discipline.some(d=>d.monthKey===m)||S.fiveS.some(f=>f.monthKey===m);
+      const cnt=S.employees.filter(e=>isRewarded(e.name,m)).length,fl=S.employees.filter(e=>isPunished(e.name,m)).length;
+      return`<div onclick="switchMR('${m}')" style="cursor:pointer;flex:1;min-width:56px;background:${m===mk?"#D1FAE5":"#F9FAFB"};border:1px solid ${m===mk?"#059669":"#E5E7EB"};border-radius:8px;padding:6px 4px;text-align:center">
+        <div style="font-size:11px;font-weight:700;color:${m===mk?"#059669":"#374151"}">${mkShort(m)}</div>
+        ${has?`<div style="font-size:10px;color:#059669">🏆${cnt}</div><div style="font-size:10px;color:#DC2626">⚠${fl}</div>`:`<div style="font-size:10px;color:#D1D5DB">—</div>`}
+      </div>`}).join("")}
+    </div>
+  </div>
+  <div class="sg">
+    <div class="sc"><div class="sl">Total</div><div class="sv">${rows.length}</div></div>
+    <div class="sc"><div class="sl">🏆 Reward</div><div class="sv g">${rw.length}</div></div>
+    <div class="sc"><div class="sl">⚠ Punishment</div><div class="sv r">${pu.length}</div></div>
+    <div class="sc"><div class="sl">Normal</div><div class="sv">${rows.length-rw.length-pu.length}</div></div>
+    <div class="sc"><div class="sl">Avg Score</div><div class="sv" style="color:${scColor(avg/100)}">${avg}%</div></div>
+  </div>
+  <div class="card" style="border-left:4px solid #059669">
+    <div class="ct" style="color:#059669">🏆 Reward List — ${mkLabel(mk)}<span style="margin-left:auto;font-size:10px;font-weight:400;color:#6B7280">Score ≥${c.rewardMin}% · 0 UL · 0 late · 0 disc · 0 5S${c.rewardNeedGood5s?" · Good 5S ✓":""}${c.rewardNeedGoodDisc?" · Good Disc ✓":""}</span></div>
+    ${rw.length===0?`<p style="font-size:12px;color:#9CA3AF;padding:.5rem 0">None qualify this month.</p>`:`<div class="tw"><table><thead><tr><th>#</th><th>Emp No.</th><th>Name</th><th>Att%</th><th>Disc%</th><th>5S%</th><th>Avg</th><th>Status</th></tr></thead>
+    <tbody>${rw.map((e,i)=>`<tr><td style="font-weight:700;color:#D97706">${i+1}</td><td style="font-size:11px;color:#9CA3AF">${e.empNo}</td><td style="font-weight:600">${e.name}</td>
+      <td><span class="b bg">${e.aS}%</span></td><td><span class="b bg">${e.dS}%</span></td><td><span class="b bg">${e.fS}%</span></td>
+      <td style="font-weight:700;color:#059669">${(e.sc*100).toFixed(1)}%</td><td><span class="b bg">🏆 Reward</span></td></tr>`).join("")}</tbody></table></div>`}
+  </div>
+  <div class="card" style="border-left:4px solid #059669">
+    <div class="ct" style="color:#059669">⭐ Good 5S — ${mkLabel(mk)}<span style="margin-left:auto;font-size:10px;font-weight:400;color:#6B7280">By Production</span></div>
+    ${!rec.good5s||!rec.good5s.length?`<p style="font-size:12px;color:#9CA3AF;padding:.5rem 0">None recorded.</p>`:`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">${recCards(rec.good5s,"5s")}</div>`}
+  </div>
+  <div class="card" style="border-left:4px solid #2563EB">
+    <div class="ct" style="color:#2563EB">🌟 Good Discipline — ${mkLabel(mk)}<span style="margin-left:auto;font-size:10px;font-weight:400;color:#6B7280">By Production</span></div>
+    ${!rec.goodDisc||!rec.goodDisc.length?`<p style="font-size:12px;color:#9CA3AF;padding:.5rem 0">None recorded.</p>`:`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">${recCards(rec.goodDisc,"disc")}</div>`}
+  </div>
+  <div class="card" style="border-left:4px solid #DC2626">
+    <div class="ct" style="color:#DC2626">⚠ Punishment List — ${mkLabel(mk)}<span style="margin-left:auto;font-size:10px;font-weight:400;color:#6B7280">UL&gt;${c.punishUL}d · Late&gt;${c.punishLate}× · Disc≥${c.punishDisc} · 5S≥${c.punish5S} · Score&lt;${c.rewardMin}%</span></div>
+    ${pu.length===0?`<p style="font-size:12px;color:#9CA3AF;padding:.5rem 0">None flagged this month.</p>`:`<div class="tw"><table><thead><tr><th>#</th><th>Emp No.</th><th>Name</th><th>Att.Days</th><th>UL</th><th>Late</th><th>Disc.</th><th>5S</th><th>Score</th><th>Reasons</th></tr></thead>
+    <tbody>${pu.map((e,i)=>`<tr><td style="font-weight:700;color:#DC2626">${i+1}</td><td style="font-size:11px;color:#9CA3AF">${e.empNo}</td><td style="font-weight:600">${e.name}</td>
+      <td><span class="b ${e.ab>0?"br":"bx"}">${e.ab}</span></td><td><span class="b ${e.ul>c.punishUL?"br":"bx"}">${e.ul}</span></td>
+      <td><span class="b ${e.late>c.punishLate?"br":"bx"}">${e.late}</span></td><td><span class="b ${e.di>=c.punishDisc?"br":"bx"}">${e.di}</span></td>
+      <td><span class="b ${e.fs>=c.punish5S?"ba":"bx"}">${e.fs}</span></td>
+      <td style="font-weight:700;color:#DC2626">${(e.sc*100).toFixed(1)}%</td>
+      <td style="font-size:11px;color:#991B1B;max-width:280px">${e.reasons.map(r=>`<div style="white-space:nowrap">▸ ${r}</div>`).join("")}</td></tr>`).join("")}</tbody></table></div>`}
+  </div>
+  <div class="card"><div class="ct">Full Summary — All ${rows.length} Operators · ${mkLabel(mk)}</div>
+    <div class="tw"><table><thead><tr><th>#</th><th>Emp No.</th><th>Name</th><th>Att.Days</th><th>UL</th><th>Late</th><th>Att%</th><th>Disc.</th><th>Disc%</th><th>5S</th><th>5S%</th><th>Score</th><th>Status</th></tr></thead>
+    <tbody>${rows.sort((a,b)=>b.sc-a.sc).map((e,i)=>`<tr>
+      <td style="color:#9CA3AF">${i+1}</td><td style="font-size:11px;color:#9CA3AF">${e.empNo}</td><td style="font-weight:600">${e.name}</td>
+      <td><span class="b ${e.ab>0?"br":"bx"}">${e.ab}</span></td><td><span class="b ${e.ul>c.punishUL?"br":"bx"}">${e.ul}</span></td>
+      <td><span class="b ${e.late>c.punishLate?"br":"bx"}">${e.late}</span></td><td style="color:${scColor(e.aS/100)}">${e.aS}%</td>
+      <td><span class="b ${e.di>0?"br":"bx"}">${e.di}</span></td><td style="color:${scColor(e.dS/100)}">${e.dS}%</td>
+      <td><span class="b ${e.fs>0?"ba":"bx"}">${e.fs}</span></td><td style="color:${scColor(e.fS/100)}">${e.fS}%</td>
+      <td style="font-weight:700;color:${scColor(e.sc)}">${(e.sc*100).toFixed(1)}%</td>
+      <td>${(()=>{if(e.rw)return`<span class="b bg">🏆 Reward</span>`;if(e.pu)return`<span class="b br">⚠ Flagged</span>`;const ms=getManualStatus(e.name,mk);return`<span class="b bx" style="background:${ms.bg};color:${ms.color}">${ms.label}</span>`;})()}</td>
+    </tr>`).join("")}</tbody></table></div>
+  </div></div>`;
+}
+function switchMR(mk){curMK=mk;renderMonthBar();nav("report");}
+function unlockReport(){
+  const entered=document.getElementById("rpt-pw-input")?.value;
+  const rpw=CFG().reportPassword;
+  if(entered===String(rpw)){
+    window._reportUnlocked=true;
+    renderPage();
+  } else {
+    const err=document.getElementById("rpt-pw-err");
+    if(err)err.style.display="";
+    document.getElementById("rpt-pw-input")?.select();
+  }
+}
+function lockReport(){window._reportUnlocked=false;renderPage();}
+
+// ══ SETTINGS ════════════════════════════════════════════════════
+function rSettings(){
+  if(!ROLES[role].settings)return`<div class="page"><div class="ph"><div class="ph-left"><h1>Settings</h1></div></div><div class="card"><div class="notice nw">Only HR (Admin) can edit settings.</div></div></div>`;
+  const c=CFG();
+  return`<div class="page">
+  <div class="ph"><div class="ph-left"><h1>⚙ Settings</h1><p>All settings save immediately and apply across the entire system.</p></div></div>
+
+  <div class="card">
+    <div class="ct" style="color:#DC2626">⚠ Punishment &amp; Reward Score Threshold</div>
+    <div class="notice ni" style="margin-bottom:12px">
+      <b>Score Formula:</b> Overall Score = (Attendance% + Discipline% + 5S%) ÷ 3<br/>
+      <span style="font-size:11px;display:block;margin-top:4px">
+        Attendance% = (Working Days − Absent Days) ÷ Working Days × 100<br/>
+        Discipline% = 100% if 0 cases, else deducted per case<br/>
+        5S% = 100% if 0 cases, else deducted per case
+      </span>
+    </div>
+    <div class="set-row">
+      <div>
+        <div class="set-lbl">Score threshold (Punish / Reward boundary)</div>
+        <div class="set-desc">Below this % → Punishment &nbsp;·&nbsp; At or above (with Reward criteria met) → Reward</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" class="fc" id="s-rm" value="${c.rewardMin}" min="1" max="100" style="width:80px"/>
+        <span style="font-size:12px;color:#6B7280">%</span>
+      </div>
+    </div>
+    <div style="margin-top:12px"><button class="btn btn-p" onclick="savePunish()">💾 Save Threshold</button></div>
+  </div>
+
+  <div class="card">
+    <div class="ct" style="color:#2563EB">📋 Attendance Types</div>
+    <div class="notice ni" style="margin-bottom:10px">Edit labels, day deductions, style colour. Toggle on/off. Add custom types.</div>
+    <div class="att-hdr"><span>Label</span><span>Days</span><span>Colour</span><span>On</span></div>
+    <div id="att-list">${c.attTypes.map((t,i)=>`<div class="att-grid" style="padding:6px 0;border-bottom:1px solid #F3F4F6">
+      <input type="text" class="fc" id="al-${i}" value="${t.label}"/>
+      <input type="number" class="fc" id="ad-${i}" value="${t.days}" min="0.5" max="5" step="0.5"/>
+      <select class="fc" id="ac-${i}">
+        <option value="br" ${t.cls==="br"?"selected":""}>🔴 Red</option>
+        <option value="ba" ${t.cls==="ba"?"selected":""}>🟡 Amber</option>
+        <option value="bg" ${t.cls==="bg"?"selected":""}>🟢 Green</option>
+        <option value="bx" ${t.cls==="bx"?"selected":""}>⚪ Gray</option>
+      </select>
+      <input type="checkbox" id="ae-${i}" ${t.enabled!==false?"checked":""} style="width:18px;height:18px;cursor:pointer"/>
+    </div>`).join("")}</div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveAttTypes()">💾 Save Types</button>
+      <button class="btn" onclick="addAttType()">+ Add Type</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct" style="color:#7C3AED">📊 Dashboard Stat Cards</div>
+    <div class="notice ni" style="margin-bottom:10px">Toggle visibility and rename labels for each stat card.</div>
+    ${c.dashCards.map((dc,i)=>`<div class="set-row">
+      <div style="display:flex;align-items:center;gap:8px;flex:1">
+        <input type="checkbox" id="dc-s-${i}" ${dc.show!==false?"checked":""} style="width:16px;height:16px;cursor:pointer"/>
+        <input type="text" class="fc" id="dc-l-${i}" value="${dc.label}" style="max-width:200px"/>
+      </div>
+      <span class="b bx" style="font-size:10px">${dc.id}</span>
+    </div>`).join("")}
+    <div style="margin-top:12px"><button class="btn btn-p" onclick="saveDashCards()">💾 Save Cards</button></div>
+  </div>
+
+  <div class="card">
+    <div class="ct" style="color:#DC2626">👥 User Accounts — Login Management</div>
+    <div class="notice ni" style="margin-bottom:10px">Manage who can log in to this system. Each user has an ID, password, and role. HR Admin can add, edit, or remove users.</div>
+    <div class="user-mgmt-hdr"><span>Name</span><span>User ID</span><span>Role</span><span></span></div>
+    <div id="user-mgmt-list">
+    ${S.users.map((u,i)=>`<div class="user-mgmt-row">
+      <span style="font-weight:500;font-size:13px">${u.name}</span>
+      <span class="b bx" style="font-size:11px">${u.id}</span>
+      <span class="b ${u.role==="hr"?"bg":u.role==="production"?"ba":"bx"}" style="font-size:10px">${ROLES[u.role]?.label||u.role}</span>
+      <div style="display:flex;gap:5px">
+        <button class="btn btn-sm" onclick="openEditUser(${i})">✏</button>
+        ${u.id!=="admin"?`<button class="btn btn-d btn-sm" onclick="removeUser(${i})">🗑</button>`:`<span style="font-size:10px;color:#9CA3AF;padding:4px">—</span>`}
+      </div>
+    </div>`).join("")}
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-p btn-sm" onclick="openAddUser()">+ Add User</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">📝 Operator List — Edit All</div>
+    <div class="notice ni" style="margin-bottom:10px">Edit name, emp no., and department for every operator. Click 💾 to save all at once.</div>
+    <div style="max-height:400px;overflow-y:auto">
+    <div class="emp-edit-hdr"><span>Name</span><span>Emp No.</span><span>Dept</span><span></span></div>
+    ${S.employees.map((e,i)=>`<div class="emp-edit-row">
+      <input type="text" class="fc" id="ee-n-${e.id}" value="${e.name}" style="font-size:12px"/>
+      <input type="text" class="fc" id="ee-no-${e.id}" value="${e.empNo}" style="font-size:12px"/>
+      <select class="fc" id="ee-d-${e.id}" style="font-size:12px">${["Production","HR","QC","Maintenance","Warehouse"].map(d=>`<option ${e.dept===d?"selected":""}>${d}</option>`).join("")}</select>
+      <button class="btn btn-d btn-sm" onclick="removeEmp(${e.id})" title="Remove">🗑</button>
+    </div>`).join("")}
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveAllEmps()">💾 Save All Operators</button>
+      <button class="btn" onclick="openAddEmp()">+ Add New</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">🏢 System Information</div>
+    <div class="set-row"><div><div class="set-lbl">Company Name</div><div class="set-desc">Shown in sidebar header</div></div>
+      <input type="text" class="fc" id="s-co" value="${c.companyName||"SOLID BASE"}" style="width:180px"/>
+    </div>
+    <div class="set-row"><div><div class="set-lbl">System Title</div><div class="set-desc">Subtitle under company name</div></div>
+      <input type="text" class="fc" id="s-ti" value="${c.systemTitle||"Reward & Punishment System"}" style="width:220px"/>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveSysInfo()">💾 Save</button>
+      <button class="btn btn-d" onclick="resetSettings()">↩ Reset to Defaults</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct" style="color:#059669">🏆 Reward Criteria</div>
+    <div class="notice ni" style="margin-bottom:10px">Define exactly what qualifies an operator for Reward. All conditions must be met.</div>
+    <div class="set-row"><div><div class="set-lbl">Score ≥ threshold</div><div class="set-desc">Already set above — must score ${c.rewardMin}% or higher</div></div>
+      <span class="b bg">${c.rewardMin}%</span>
+    </div>
+    <div class="set-row"><div><div class="set-lbl">Zero Unpaid Leave required</div><div class="set-desc">Operator must have 0 unpaid leave days that month</div></div>
+      <span class="b bg">Always enforced</span>
+    </div>
+    <div class="set-row"><div><div class="set-lbl">Zero Late required</div><div class="set-desc">Operator must have 0 late entries that month</div></div>
+      <span class="b bg">Always enforced</span>
+    </div>
+    <div class="set-row"><div><div class="set-lbl">Must have Good 5S recognition</div><div class="set-desc">Operator must be listed in Good 5S for that month</div></div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500">
+        <input type="checkbox" id="s-rg5s" ${c.rewardNeedGood5s?"checked":""} style="width:18px;height:18px;cursor:pointer"/>
+        Required
+      </label>
+    </div>
+    <div class="set-row"><div><div class="set-lbl">Must have Good Discipline recognition</div><div class="set-desc">Operator must be listed in Good Discipline for that month</div></div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500">
+        <input type="checkbox" id="s-rgd" ${c.rewardNeedGoodDisc?"checked":""} style="width:18px;height:18px;cursor:pointer"/>
+        Required
+      </label>
+    </div>
+    <div style="margin-top:12px"><button class="btn btn-p" onclick="saveRewardCriteria()">💾 Save Reward Criteria</button></div>
+  </div>
+
+  <div class="card">
+    <div class="ct" style="color:#7C3AED">🏷 Operator Statuses (for non-reward, non-punish)</div>
+    <div class="notice ni" style="margin-bottom:10px">These statuses appear for operators who are neither Reward nor Flagged. HR can manually assign each operator a status each month from the Operators page. Add, edit, or remove statuses below.</div>
+    <div id="status-list">
+    ${c.statuses.map((s,i)=>`<div style="display:grid;grid-template-columns:1fr 90px 90px auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #F3F4F6">
+      <input type="text" class="fc" id="sl-label-${i}" value="${s.label}" placeholder="Status label"/>
+      <input type="color" id="sl-color-${i}" value="${s.color}" style="width:100%;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px"/>
+      <input type="color" id="sl-bg-${i}" value="${s.bg}" style="width:100%;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px"/>
+      <button class="btn btn-d btn-sm" onclick="removeStatus(${i})" title="Remove">🗑</button>
+    </div>`).join("")}
+    <div style="font-size:10px;color:var(--muted);padding:4px 0 0">Text colour &nbsp;·&nbsp; Background colour</div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveStatuses()">💾 Save Statuses</button>
+      <button class="btn" onclick="addStatus()">+ Add Status</button>
+    </div>
+    <div class="notice nw" style="margin-top:10px">⚠ First status in the list is the default for operators not yet manually assigned.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct" style="color:#DC2626">🔐 Passwords</div>
+    <div class="notice ni" style="margin-bottom:12px">ℹ Set passwords for approvals and report viewing. Leave blank to disable.</div>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #F3F4F6">Approval Password — required to approve any entry</div>
+    <div class="set-row">
+      <div><div class="set-lbl">Set new approval password</div>
+        <div class="set-desc">Status: ${c.approvalPassword?`<b style="color:#059669">✓ Active (${c.approvalPassword.replace(/./g,"•")})</b>`:`<span style="color:#9CA3AF">No password set</span>`}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input type="password" class="fc" id="s-pw1" placeholder="New password" style="width:140px"/>
+        <input type="password" class="fc" id="s-pw2" placeholder="Confirm" style="width:140px"/>
+        <button class="btn btn-p btn-sm" onclick="saveApprovalPw()">Set</button>
+        <button class="btn btn-d btn-sm" onclick="clearApprovalPw()">Remove</button>
+      </div>
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:#374151;margin:12px 0 8px;padding-bottom:6px;border-bottom:1px solid #F3F4F6">Report Password — required to view Monthly Report</div>
+    <div class="set-row">
+      <div><div class="set-lbl">Set new report password</div>
+        <div class="set-desc">Status: ${c.reportPassword?`<b style="color:#059669">✓ Active (${c.reportPassword.replace(/./g,"•")})</b>`:`<span style="color:#9CA3AF">No password — report is open to all</span>`}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input type="password" class="fc" id="s-rpw1" placeholder="New password" style="width:140px"/>
+        <input type="password" class="fc" id="s-rpw2" placeholder="Confirm" style="width:140px"/>
+        <button class="btn btn-p btn-sm" onclick="saveReportPw()">Set</button>
+        <button class="btn btn-d btn-sm" onclick="clearReportPw()">Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:#FECACA">
+    <div class="ct" style="color:#DC2626">⛔ Danger Zone</div>
+    <div class="set-row"><div><div class="set-lbl">Clear ${mkLabel(curMK)} data</div><div class="set-desc">Deletes all entries for this month only. Operators kept.</div></div>
+      <button class="btn btn-d btn-sm" onclick="clearMonth()">Clear ${mkShort(curMK)}</button>
+    </div>
+    <div class="set-row"><div><div class="set-lbl">Factory Reset</div><div class="set-desc">Wipes ALL data. Cannot be undone.</div></div>
+      <button class="btn btn-d btn-sm" onclick="factoryReset()">Factory Reset</button>
+    </div>
+  </div>
+  </div>`;
+}
+
+function savePunish(){
+  S.config.rewardMin=parseFloat(document.getElementById("s-rm").value)||95;
+  save();toast("Score threshold saved!");renderPage();
+}
+function saveAttTypes(){
+  S.config.attTypes.forEach((t,i)=>{
+    const lbl=document.getElementById(`al-${i}`);const dys=document.getElementById(`ad-${i}`);const cls=document.getElementById(`ac-${i}`);const en=document.getElementById(`ae-${i}`);
+    if(lbl)t.label=lbl.value||t.label;if(dys)t.days=parseFloat(dys.value)||t.days;if(cls)t.cls=cls.value;if(en)t.enabled=en.checked;
+  });
+  save();toast("Attendance types saved!");renderPage();
+}
+function addAttType(){
+  S.config.attTypes.push({id:"custom_"+uid(),label:"New Type",days:1,cls:"bx",enabled:true});
+  save();renderPage();setTimeout(()=>document.getElementById("att-list")?.lastElementChild?.scrollIntoView({behavior:"smooth"}),100);
+}
+function saveDashCards(){
+  S.config.dashCards.forEach((dc,i)=>{
+    const s=document.getElementById(`dc-s-${i}`);const l=document.getElementById(`dc-l-${i}`);
+    if(s)dc.show=s.checked;if(l)dc.label=l.value||dc.label;
+  });
+  save();toast("Dashboard cards saved!");renderPage();
+}
+function saveAllEmps(){
+  let errors=0;
+  S.employees.forEach(e=>{
+    const n=document.getElementById(`ee-n-${e.id}`),no=document.getElementById(`ee-no-${e.id}`),d=document.getElementById(`ee-d-${e.id}`);
+    if(!n||!no||!d)return;
+    const newName=n.value.trim().toUpperCase(),newNo=no.value.trim(),newDept=d.value;
+    if(!newName||!newNo){errors++;return;}
+    if(newName!==e.name){
+      S.attendance.forEach(a=>{if(a.employeeName===e.name)a.employeeName=newName;});
+      S.discipline.forEach(x=>{if(x.employeeName===e.name)x.employeeName=newName;});
+      S.fiveS.forEach(x=>{if(x.employeeName===e.name)x.employeeName=newName;});
+    }
+    e.name=newName;e.empNo=newNo;e.dept=newDept;
+  });
+  save();if(errors>0)toast(`${errors} rows skipped (empty fields)","e`);else toast("All operators saved!");renderPage();
+}
+function saveSysInfo(){
+  S.config.companyName=document.getElementById("s-co")?.value||"SOLID BASE";
+  S.config.systemTitle=document.getElementById("s-ti")?.value||"Reward & Punishment System";
+  save();toast("Saved!");
+  document.getElementById("sb-cname").textContent=S.config.companyName;
+  document.getElementById("sb-ctitle").textContent=S.config.systemTitle;
+  const el_cn=document.getElementById("login-company-name");
+  const el_ct=document.getElementById("login-system-title");
+  if(el_cn)el_cn.textContent=S.config.companyName;
+  if(el_ct)el_ct.innerHTML=S.config.systemTitle;
+}
+function resetSettings(){
+  if(!confirm("Reset all settings to defaults? Your data is kept."))return;
+  S.config=JSON.parse(JSON.stringify(DEFAULT_CONFIG));save();toast("Settings reset.");renderPage();
+}
+function clearMonth(){
+  if(!confirm(`Delete ALL entries for ${mkLabel(curMK)}?`))return;
+  S.attendance=S.attendance.filter(a=>a.monthKey!==curMK);
+  S.discipline=S.discipline.filter(d=>d.monthKey!==curMK);
+  S.fiveS=S.fiveS.filter(f=>f.monthKey!==curMK);
+  delete S.recognition[curMK];save();toast(`${mkLabel(curMK)} cleared.`);renderPage();
+}
+function saveRewardCriteria(){
+  S.config.rewardNeedGood5s=document.getElementById("s-rg5s")?.checked||false;
+  S.config.rewardNeedGoodDisc=document.getElementById("s-rgd")?.checked||false;
+  save();toast("Reward criteria saved!");renderPage();
+}
+function saveStatuses(){
+  S.config.statuses.forEach((s,i)=>{
+    const lbl=document.getElementById(`sl-label-${i}`);
+    const col=document.getElementById(`sl-color-${i}`);
+    const bg=document.getElementById(`sl-bg-${i}`);
+    if(lbl)s.label=lbl.value||s.label;
+    if(col)s.color=col.value;
+    if(bg)s.bg=bg.value;
+  });
+  save();toast("Statuses saved!");renderPage();
+}
+function addStatus(){
+  if(!S.config.statuses)S.config.statuses=[];
+  S.config.statuses.push({id:"s_"+uid(),label:"NEW STATUS",color:"#374151",bg:"#F3F4F6"});
+  save();renderPage();
+  setTimeout(()=>document.getElementById("status-list")?.lastElementChild?.scrollIntoView({behavior:"smooth"}),100);
+}
+function removeStatus(i){
+  if(S.config.statuses.length<=1){toast("Keep at least 1 status","e");return;}
+  if(!confirm("Remove this status?"))return;
+  S.config.statuses.splice(i,1);save();renderPage();
+}
+function saveApprovalPw(){
+  const p1=document.getElementById("s-pw1")?.value?.trim();
+  const p2=document.getElementById("s-pw2")?.value?.trim();
+  if(!p1){toast("Enter a password","e");return;}
+  if(p1!==p2){toast("Passwords do not match","e");return;}
+  S.config.approvalPassword=p1;save();toast("Approval password updated!");renderPage();
+}
+function clearApprovalPw(){
+  if(!confirm("Remove approval password? Anyone can approve entries without a password."))return;
+  S.config.approvalPassword="";save();toast("Approval password removed.");renderPage();
+}
+function saveReportPw(){
+  const p1=document.getElementById("s-rpw1")?.value?.trim();
+  const p2=document.getElementById("s-rpw2")?.value?.trim();
+  if(!p1){toast("Enter a password","e");return;}
+  if(p1!==p2){toast("Passwords do not match","e");return;}
+  S.config.reportPassword=p1;window._reportUnlocked=false;save();toast("Report password set!");renderPage();
+}
+function clearReportPw(){
+  if(!confirm("Remove report password? Anyone can view the Monthly Report."))return;
+  S.config.reportPassword="";window._reportUnlocked=false;save();toast("Report password removed.");renderPage();
+}
+function openAddUser(){
+  openModal("Add New User",`
+    <div class="fr">
+      <div class="fg"><label>Full Name *</label><input class="fc" id="u-name" placeholder="e.g. Ahmad HR"/></div>
+      <div class="fg"><label>User ID * <span style="font-size:10px;color:#6B7280">(for login)</span></label><input class="fc" id="u-id" placeholder="e.g. ahmad01"/></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Password *</label><input type="password" class="fc" id="u-pw" placeholder="Set password"/></div>
+      <div class="fg"><label>Role</label>
+        <select class="fc" id="u-role">
+          ${Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <div class="notice ni">ℹ User ID must be unique. Password is case-sensitive.</div>`,
+    `<button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="saveNewUser()">Add User</button>`);
+}
+function saveNewUser(){
+  const name=document.getElementById("u-name")?.value?.trim();
+  const id=document.getElementById("u-id")?.value?.trim().toLowerCase().replace(/\s+/g,"");
+  const pw=document.getElementById("u-pw")?.value;
+  const r=document.getElementById("u-role")?.value;
+  if(!name){toast("Enter name","e");return;}
+  if(!id){toast("Enter user ID","e");return;}
+  if(!pw){toast("Enter password","e");return;}
+  if(S.users.some(u=>u.id===id)){toast("User ID already exists","e");return;}
+  S.users.push({id,name,password:pw,role:r||"viewer"});
+  save();closeModal();toast("User added!");renderPage();
+}
+function openEditUser(i){
+  const u=S.users[i];
+  openModal("Edit User",`
+    <div class="fr">
+      <div class="fg"><label>Full Name *</label><input class="fc" id="u-name" value="${u.name}"/></div>
+      <div class="fg"><label>User ID *</label><input class="fc" id="u-id" value="${u.id}" ${u.id==="admin"?"readonly style='background:#F9FAFB;color:#9CA3AF'":""}/></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>New Password <span style="font-size:10px;color:#6B7280">(leave blank to keep)</span></label><input type="password" class="fc" id="u-pw" placeholder="Leave blank to keep current"/></div>
+      <div class="fg"><label>Role</label>
+        <select class="fc" id="u-role">
+          ${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${u.role===k?"selected":""}>${v.label}</option>`).join("")}
+        </select>
+      </div>
+    </div>`,
+    `<button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="saveEditUser(${i})">Save Changes</button>`);
+}
+function saveEditUser(i){
+  const name=document.getElementById("u-name")?.value?.trim();
+  const id=document.getElementById("u-id")?.value?.trim().toLowerCase().replace(/\s+/g,"");
+  const pw=document.getElementById("u-pw")?.value;
+  const r=document.getElementById("u-role")?.value;
+  if(!name){toast("Enter name","e");return;}
+  if(!id){toast("Enter user ID","e");return;}
+  if(S.users.some((u,idx)=>u.id===id&&idx!==i)){toast("User ID already exists","e");return;}
+  S.users[i].name=name;S.users[i].id=id;S.users[i].role=r||"viewer";
+  if(pw)S.users[i].password=pw;
+  // Update current session if editing self
+  if(currentUser&&currentUser.id===S.users[i].id){currentUser={...S.users[i]};}
+  save();closeModal();toast("User updated!");renderPage();
+}
+function removeUser(i){
+  const u=S.users[i];
+  if(u.id==="admin"){toast("Cannot remove the main admin account","e");return;}
+  if(!confirm(`Remove user "${u.name}" (${u.id})?`))return;
+  S.users.splice(i,1);save();toast("User removed.");renderPage();
+}
+function factoryReset(){
+  if(!confirm("⛔ DELETE EVERYTHING and restore defaults?"))return;
+  if(!confirm("Final warning — cannot be undone. Continue?"))return;
+  localStorage.removeItem("sbv7");location.reload();
+}
+
+// ══ BOOT ═════════════════════════════════════════════════════════
+loadState();
+// Update login screen company name from config
+const cfg0=S.config||DEFAULT_CONFIG;
+const el_cn=document.getElementById("login-company-name");
+const el_ct=document.getElementById("login-system-title");
+if(el_cn)el_cn.textContent=cfg0.companyName||"SOLID BASE";
+if(el_ct)el_ct.innerHTML=(cfg0.systemTitle||"Reward & Punishment System");
+// Show login screen — user must log in first
+document.getElementById("login-screen").style.display="flex";
+document.getElementById("app-layout").style.display="none";
+document.getElementById("login-id")?.focus();
+</script>
+</body>
+</html>
